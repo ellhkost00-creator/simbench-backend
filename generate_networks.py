@@ -47,15 +47,27 @@ def main():
 
             fig.update_layout(
                 autosize=True,
-                margin=dict(l=10, r=10, t=10, b=10),
-                height=650,
+                width=1200,
+                height=700,
+                margin=dict(l=0, r=0, t=0, b=0),
                 legend=dict(
                     orientation="v",
-                    x=1.02,
+                    x=0.78,
                     y=1,
                     xanchor="left",
                     yanchor="top",
                 ),
+            )
+
+            fig.update_xaxes(
+                automargin=False,
+                constrain="domain"
+            )
+
+            fig.update_yaxes(
+                automargin=False,
+                scaleanchor="x",
+                scaleratio=1
             )
 
             fig.write_html(
