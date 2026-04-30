@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-
+from fastapi.responses import FileResponse
 app = FastAPI(title="SimBench Backend")
 
 app.add_middleware(
@@ -16,6 +16,7 @@ app.add_middleware(
 
 DATA_FILE = Path("data/networks.json")
 PLOTS_DIR = Path("data/plots")
+RESULTS_DIR = Path("data/results")
 
 if PLOTS_DIR.exists():
     app.mount("/plots", StaticFiles(directory=PLOTS_DIR), name="plots")
@@ -57,3 +58,22 @@ def network_detail(network_id: str):
             return network
 
     raise HTTPException(status_code=404, detail="Network not found")
+
+@app.get("/networks/{network_id}/results/vm-pu")
+def get_vm_pu(network_id: str):
+    file_path = RESULTS_DIR / network_id / "res_bus" / "vm_pu.csv"
+
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="vm_pu not found")
+
+    return FileResponse(file_path)
+
+
+@app.get("/networks/{network_id}/results/line-loading")
+def get_line_loading(network_id: str):
+    file_path = RESULTS_DIR / network_id / "res_line" / "loading_percent.csv"
+
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="line loading not found")
+
+    return FileResponse(file_path)
