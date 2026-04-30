@@ -47,27 +47,25 @@ def main():
 
             fig.update_layout(
                 autosize=True,
-                width=1200,
                 height=700,
                 margin=dict(l=0, r=0, t=0, b=0),
                 legend=dict(
                     orientation="v",
-                    x=0.78,
+                    x=0.82,
                     y=1,
                     xanchor="left",
                     yanchor="top",
                 ),
             )
 
+            # Important: do NOT lock aspect ratio with scaleanchor.
+            # This lets the plot use the available iframe space better.
             fig.update_xaxes(
-                automargin=False,
-                constrain="domain"
+                automargin=True
             )
 
             fig.update_yaxes(
-                automargin=False,
-                scaleanchor="x",
-                scaleratio=1
+                automargin=True
             )
 
             fig.write_html(
