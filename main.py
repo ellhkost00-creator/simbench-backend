@@ -63,16 +63,10 @@ def network_detail(network_id: str):
 
     net = sb.get_simbench_net(network_id)
 
-    return {
-        **network_metadata(network_id),
-        "buses": len(net.bus),
-        "lines": len(net.line),
-        "transformers": len(net.trafo),
-        "loads": len(net.load),
-        "topology": {
-            "buses": net.bus.reset_index().rename(columns={"index": "id"}).to_dict(orient="records"),
-            "lines": net.line.reset_index().rename(columns={"index": "id"}).to_dict(orient="records"),
-            "transformers": net.trafo.reset_index().rename(columns={"index": "id"}).to_dict(orient="records"),
-            "loads": net.load.reset_index().rename(columns={"index": "id"}).to_dict(orient="records"),
-        }
-    }
+    item = network_metadata(network_id)
+    item["buses"] = len(net.bus)
+    item["lines"] = len(net.line)
+    item["transformers"] = len(net.trafo)
+    item["loads"] = len(net.load)
+
+    return item
