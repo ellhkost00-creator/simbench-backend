@@ -10,7 +10,8 @@
     "buses": 15,
     "lines": 13,
     "transformers": 1,
-    "loads": 13
+    "loads": 13,
+    "plot_url": "/plots/1-LV-rural1--0-sw.html"
   },
   {
     "id": "1-LV-rural1--0-no_sw",
@@ -23,7 +24,8 @@
     "buses": 15,
     "lines": 13,
     "transformers": 1,
-    "loads": 13
+    "loads": 13,
+    "plot_url": "/plots/1-LV-rural1--0-no_sw.html"
   },
   {
     "id": "1-LV-rural1--1-sw",
@@ -36,7 +38,8 @@
     "buses": 15,
     "lines": 13,
     "transformers": 1,
-    "loads": 14
+    "loads": 14,
+    "plot_url": "/plots/1-LV-rural1--1-sw.html"
   },
   {
     "id": "1-LV-rural1--1-no_sw",
@@ -49,7 +52,8 @@
     "buses": 15,
     "lines": 13,
     "transformers": 1,
-    "loads": 14
+    "loads": 14,
+    "plot_url": "/plots/1-LV-rural1--1-no_sw.html"
   },
   {
     "id": "1-LV-rural1--2-sw",
@@ -62,7 +66,8 @@
     "buses": 15,
     "lines": 13,
     "transformers": 1,
-    "loads": 28
+    "loads": 28,
+    "plot_url": "/plots/1-LV-rural1--2-sw.html"
   },
   {
     "id": "1-LV-rural1--2-no_sw",
@@ -75,7 +80,8 @@
     "buses": 15,
     "lines": 13,
     "transformers": 1,
-    "loads": 28
+    "loads": 28,
+    "plot_url": "/plots/1-LV-rural1--2-no_sw.html"
   },
   {
     "id": "1-LV-rural2--0-sw",
@@ -88,7 +94,8 @@
     "buses": 97,
     "lines": 95,
     "transformers": 1,
-    "loads": 99
+    "loads": 99,
+    "plot_url": "/plots/1-LV-rural2--0-sw.html"
   },
   {
     "id": "1-LV-rural2--0-no_sw",
@@ -101,7 +108,8 @@
     "buses": 97,
     "lines": 95,
     "transformers": 1,
-    "loads": 99
+    "loads": 99,
+    "plot_url": "/plots/1-LV-rural2--0-no_sw.html"
   },
   {
     "id": "1-LV-rural2--1-sw",
@@ -114,7 +122,8 @@
     "buses": 97,
     "lines": 95,
     "transformers": 1,
-    "loads": 103
+    "loads": 103,
+    "plot_url": "/plots/1-LV-rural2--1-sw.html"
   },
   {
     "id": "1-LV-rural2--1-no_sw",
@@ -127,7 +136,8 @@
     "buses": 97,
     "lines": 95,
     "transformers": 1,
-    "loads": 103
+    "loads": 103,
+    "plot_url": "/plots/1-LV-rural2--1-no_sw.html"
   },
   {
     "id": "1-LV-rural2--2-sw",
@@ -140,7 +150,8 @@
     "buses": 97,
     "lines": 95,
     "transformers": 1,
-    "loads": 118
+    "loads": 118,
+    "plot_url": "/plots/1-LV-rural2--2-sw.html"
   },
   {
     "id": "1-LV-rural2--2-no_sw",
@@ -153,7 +164,8 @@
     "buses": 97,
     "lines": 95,
     "transformers": 1,
-    "loads": 118
+    "loads": 118,
+    "plot_url": "/plots/1-LV-rural2--2-no_sw.html"
   },
   {
     "id": "1-LV-rural3--0-sw",
@@ -166,7 +178,8 @@
     "buses": 129,
     "lines": 127,
     "transformers": 1,
-    "loads": 118
+    "loads": 118,
+    "plot_url": "/plots/1-LV-rural3--0-sw.html"
   },
   {
     "id": "1-LV-rural3--0-no_sw",
@@ -179,7 +192,8 @@
     "buses": 129,
     "lines": 127,
     "transformers": 1,
-    "loads": 118
+    "loads": 118,
+    "plot_url": "/plots/1-LV-rural3--0-no_sw.html"
   },
   {
     "id": "1-LV-rural3--1-sw",
@@ -192,7 +206,8 @@
     "buses": 129,
     "lines": 127,
     "transformers": 1,
-    "loads": 145
+    "loads": 145,
+    "plot_url": "/plots/1-LV-rural3--1-sw.html"
   },
   {
     "id": "1-LV-rural3--1-no_sw",
@@ -205,7 +220,8 @@
     "buses": 129,
     "lines": 127,
     "transformers": 1,
-    "loads": 145
+    "loads": 145,
+    "plot_url": "/plots/1-LV-rural3--1-no_sw.html"
   },
   {
     "id": "1-LV-rural3--2-sw",
@@ -218,7 +234,8 @@
     "buses": 129,
     "lines": 127,
     "transformers": 1,
-    "loads": 153
+    "loads": 153,
+    "plot_url": "/plots/1-LV-rural3--2-sw.html"
   },
   {
     "id": "1-LV-rural3--2-no_sw",
@@ -231,7 +248,8 @@
     "buses": 129,
     "lines": 127,
     "transformers": 1,
-    "loads": 153
+    "loads": 153,
+    "plot_url": "/plots/1-LV-rural3--2-no_sw.html"
   },
   {
     "id": "1-LV-semiurb4--0-sw",
@@ -244,7 +262,8 @@
     "buses": 44,
     "lines": 42,
     "transformers": 1,
-    "loads": 41
+    "loads": 41,
+    "plot_url": "/plots/1-LV-semiurb4--0-sw.html"
   },
   {
     "id": "1-LV-semiurb4--0-no_sw",
@@ -257,7 +276,8 @@
     "buses": 44,
     "lines": 42,
     "transformers": 1,
-    "loads": 41
+    "loads": 41,
+    "plot_url": "/plots/1-LV-semiurb4--0-no_sw.html"
   },
   {
     "id": "1-LV-semiurb4--1-sw",
@@ -270,7 +290,8 @@
     "buses": 44,
     "lines": 42,
     "transformers": 1,
-    "loads": 44
+    "loads": 44,
+    "plot_url": "/plots/1-LV-semiurb4--1-sw.html"
   },
   {
     "id": "1-LV-semiurb4--1-no_sw",
@@ -283,7 +304,8 @@
     "buses": 44,
     "lines": 42,
     "transformers": 1,
-    "loads": 44
+    "loads": 44,
+    "plot_url": "/plots/1-LV-semiurb4--1-no_sw.html"
   },
   {
     "id": "1-LV-semiurb4--2-sw",
@@ -296,7 +318,8 @@
     "buses": 44,
     "lines": 42,
     "transformers": 1,
-    "loads": 58
+    "loads": 58,
+    "plot_url": "/plots/1-LV-semiurb4--2-sw.html"
   },
   {
     "id": "1-LV-semiurb4--2-no_sw",
@@ -309,7 +332,8 @@
     "buses": 44,
     "lines": 42,
     "transformers": 1,
-    "loads": 58
+    "loads": 58,
+    "plot_url": "/plots/1-LV-semiurb4--2-no_sw.html"
   },
   {
     "id": "1-LV-semiurb5--0-sw",
@@ -322,7 +346,8 @@
     "buses": 111,
     "lines": 109,
     "transformers": 1,
-    "loads": 104
+    "loads": 104,
+    "plot_url": "/plots/1-LV-semiurb5--0-sw.html"
   },
   {
     "id": "1-LV-semiurb5--0-no_sw",
@@ -335,7 +360,8 @@
     "buses": 111,
     "lines": 109,
     "transformers": 1,
-    "loads": 104
+    "loads": 104,
+    "plot_url": "/plots/1-LV-semiurb5--0-no_sw.html"
   },
   {
     "id": "1-LV-semiurb5--1-sw",
@@ -348,7 +374,8 @@
     "buses": 111,
     "lines": 109,
     "transformers": 1,
-    "loads": 118
+    "loads": 118,
+    "plot_url": "/plots/1-LV-semiurb5--1-sw.html"
   },
   {
     "id": "1-LV-semiurb5--1-no_sw",
@@ -361,7 +388,8 @@
     "buses": 111,
     "lines": 109,
     "transformers": 1,
-    "loads": 118
+    "loads": 118,
+    "plot_url": "/plots/1-LV-semiurb5--1-no_sw.html"
   },
   {
     "id": "1-LV-semiurb5--2-sw",
@@ -374,7 +402,8 @@
     "buses": 111,
     "lines": 109,
     "transformers": 1,
-    "loads": 129
+    "loads": 129,
+    "plot_url": "/plots/1-LV-semiurb5--2-sw.html"
   },
   {
     "id": "1-LV-semiurb5--2-no_sw",
@@ -387,7 +416,8 @@
     "buses": 111,
     "lines": 109,
     "transformers": 1,
-    "loads": 129
+    "loads": 129,
+    "plot_url": "/plots/1-LV-semiurb5--2-no_sw.html"
   },
   {
     "id": "1-LV-urban6--0-sw",
@@ -400,7 +430,8 @@
     "buses": 59,
     "lines": 57,
     "transformers": 1,
-    "loads": 111
+    "loads": 111,
+    "plot_url": "/plots/1-LV-urban6--0-sw.html"
   },
   {
     "id": "1-LV-urban6--0-no_sw",
@@ -413,7 +444,8 @@
     "buses": 59,
     "lines": 57,
     "transformers": 1,
-    "loads": 111
+    "loads": 111,
+    "plot_url": "/plots/1-LV-urban6--0-no_sw.html"
   },
   {
     "id": "1-LV-urban6--1-sw",
@@ -426,7 +458,8 @@
     "buses": 59,
     "lines": 57,
     "transformers": 1,
-    "loads": 112
+    "loads": 112,
+    "plot_url": "/plots/1-LV-urban6--1-sw.html"
   },
   {
     "id": "1-LV-urban6--1-no_sw",
@@ -439,7 +472,8 @@
     "buses": 59,
     "lines": 57,
     "transformers": 1,
-    "loads": 112
+    "loads": 112,
+    "plot_url": "/plots/1-LV-urban6--1-no_sw.html"
   },
   {
     "id": "1-LV-urban6--2-sw",
@@ -452,7 +486,8 @@
     "buses": 59,
     "lines": 57,
     "transformers": 1,
-    "loads": 135
+    "loads": 135,
+    "plot_url": "/plots/1-LV-urban6--2-sw.html"
   },
   {
     "id": "1-LV-urban6--2-no_sw",
@@ -465,6 +500,7 @@
     "buses": 59,
     "lines": 57,
     "transformers": 1,
-    "loads": 135
+    "loads": 135,
+    "plot_url": "/plots/1-LV-urban6--2-no_sw.html"
   }
 ]

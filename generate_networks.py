@@ -2,11 +2,8 @@ import json
 from datetime import date
 from pathlib import Path
 
-import matplotlib
-matplotlib.use("Agg")
-
 import simbench as sb
-from pandapower.plotting import simple_plot
+from pandapower.plotting.plotly import simple_plotly
 
 OUT_DIR = Path("data")
 PLOTS_DIR = OUT_DIR / "plots"
@@ -14,7 +11,7 @@ OUT_FILE = OUT_DIR / "networks.json"
 
 
 def safe_filename(code: str) -> str:
-    return code.replace("/", "_").replace("\\", "_") + ".png"
+    return code.replace("/", "_").replace("\\", "_") + ".html"
 
 
 def main():
@@ -38,11 +35,27 @@ def main():
         plot_filename = safe_filename(code)
         plot_path = PLOTS_DIR / plot_filename
 
-        print(f"Creating plot for {code}...")
-        ax = simple_plot(net, show_plot=False)
-        fig = ax.get_figure()
-        fig.savefig(plot_path, dpi=150, bbox_inches="tight")
-        fig.clf()
+        print(f"Creating interactive plot for {code}...")
+
+        try:
+            fig = simple_plotly(
+                net,
+                auto_open=False,
+                showlegend=True,
+                respect_switches=True,
+            )
+
+            fig.write_html(
+                str(plot_path),
+                include_plotlyjs="cdn",
+                full_html=True,
+            )
+
+            plot_url = f"/plots/{plot_filename}"
+
+        except Exception as e:
+            print(f"Plot failed for {code}: {e}")
+            plot_url = None
 
         networks.append({
             "id": code,
@@ -56,13 +69,14 @@ def main():
             "lines": int(len(net.line)),
             "transformers": int(len(net.trafo)),
             "loads": int(len(net.load)),
-            "plot_url": f"/plots/{plot_filename}",
+            "plot_url": plot_url,
         })
 
     with open(OUT_FILE, "w", encoding="utf-8") as f:
         json.dump(networks, f, indent=2, ensure_ascii=False)
 
     print(f"Saved {len(networks)} networks to {OUT_FILE}")
+    print(f"Plots saved to {PLOTS_DIR}")
 
 
 if __name__ == "__main__":
