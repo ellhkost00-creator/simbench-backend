@@ -47,38 +47,27 @@ def main():
 
             fig.update_layout(
                 autosize=True,
-                height=700,
-                margin=dict(l=0, r=0, t=0, b=0),
+                margin=dict(l=10, r=10, t=10, b=10),
+                height=650,
                 legend=dict(
-                    orientation="v",
-                    x=0.82,
-                    y=1,
-                    xanchor="left",
-                    yanchor="top",
-                ),
-            )
-
-            # Important: do NOT lock aspect ratio with scaleanchor.
-            # This lets the plot use the available iframe space better.
-            fig.update_xaxes(
-                automargin=True
-            )
-
-            fig.update_yaxes(
-                automargin=True
-            )
+                orientation="v",
+                x=1.02,
+                y=1,
+                xanchor="left",
+                yanchor="top",
+            ),
+        )
 
             fig.write_html(
                 str(plot_path),
                 include_plotlyjs="cdn",
                 full_html=True,
                 config={
-                    "responsive": True,
-                    "displayModeBar": True,
-                    "scrollZoom": True,
-                },
-            )
-
+                "responsive": True,
+                "displayModeBar": True,
+                "scrollZoom": True,
+            },
+        )
             plot_url = f"/plots/{plot_filename}"
 
         except Exception as e:
