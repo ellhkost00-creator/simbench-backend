@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="SimBench Backend")
 
@@ -14,6 +15,10 @@ app.add_middleware(
 )
 
 DATA_FILE = Path("data/networks.json")
+PLOTS_DIR = Path("data/plots")
+
+if PLOTS_DIR.exists():
+    app.mount("/plots", StaticFiles(directory=PLOTS_DIR), name="plots")
 
 
 def load_networks():
@@ -26,9 +31,15 @@ def load_networks():
 
 @app.get("/")
 def root():
+    networks = load_networks()
+
     return {
         "message": "SimBench backend is running",
-        "endpoints": ["/networks", "/networks/{network_id}"]
+        "data_file_exists": DATA_FILE.exists(),
+        "plots_dir_exists": PLOTS_DIR.exists(),
+        "networks_loaded": len(networks),
+        "first_network": networks[0] if networks else None,
+        "endpoints": ["/networks", "/networks/{network_id}", "/plots/{plot_file}"]
     }
 
 

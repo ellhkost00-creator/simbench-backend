@@ -1,14 +1,25 @@
 import json
 from datetime import date
 from pathlib import Path
+
+import matplotlib
+matplotlib.use("Agg")
+
 import simbench as sb
+from pandapower.plotting import simple_plot
 
 OUT_DIR = Path("data")
+PLOTS_DIR = OUT_DIR / "plots"
 OUT_FILE = OUT_DIR / "networks.json"
+
+
+def safe_filename(code: str) -> str:
+    return code.replace("/", "_").replace("\\", "_") + ".png"
 
 
 def main():
     OUT_DIR.mkdir(exist_ok=True)
+    PLOTS_DIR.mkdir(exist_ok=True)
 
     all_codes = sb.collect_all_simbench_codes()
 
@@ -24,6 +35,15 @@ def main():
 
         net = sb.get_simbench_net(code)
 
+        plot_filename = safe_filename(code)
+        plot_path = PLOTS_DIR / plot_filename
+
+        print(f"Creating plot for {code}...")
+        ax = simple_plot(net, show_plot=False)
+        fig = ax.get_figure()
+        fig.savefig(plot_path, dpi=150, bbox_inches="tight")
+        fig.clf()
+
         networks.append({
             "id": code,
             "name": f"SimBench {code}",
@@ -36,6 +56,7 @@ def main():
             "lines": int(len(net.line)),
             "transformers": int(len(net.trafo)),
             "loads": int(len(net.load)),
+            "plot_url": f"/plots/{plot_filename}",
         })
 
     with open(OUT_FILE, "w", encoding="utf-8") as f:
