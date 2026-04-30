@@ -59,16 +59,4 @@ def network_detail(network_id: str):
     if network_id not in codes:
         raise HTTPException(status_code=404, detail="Network not found")
 
-    try:
-        net = sb.get_simbench_net(network_id)
-
-        item = network_metadata(network_id)
-        item["buses"] = int(len(net.bus))
-        item["lines"] = int(len(net.line))
-        item["transformers"] = int(len(net.trafo))
-        item["loads"] = int(len(net.load))
-
-        return item
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return network_metadata(network_id)
