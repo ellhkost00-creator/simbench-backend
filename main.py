@@ -1,7 +1,7 @@
-from datetime import date
+import json
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-import simbench as sb
 
 app = FastAPI(title="SimBench Backend")
 
@@ -13,29 +13,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-def get_pure_lv_codes():
-    all_codes = sb.collect_all_simbench_codes()
-    return [
-        code for code in all_codes
-        if "-LV-" in code and "MV" not in code and "HV" not in code and "EHV" not in code
-    ]
+DATA_FILE = Path("data/networks.json")
 
 
-def network_metadata(code: str):
-    return {
-        "id": code,
-        "name": f"SimBench {code}",
-        "voltage": "0.4 kV",
-        "type": "LV",
-        "status": "validated",
-        "created": str(date.today()),
-        "version": "v1.0",
-        "buses": 0,
-        "lines": 0,
-        "transformers": 0,
-        "loads": 0,
-    }
+def load_networks():
+    if not DATA_FILE.exists():
+        return []
+
+    with open(DATA_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
 @app.get("/")
@@ -48,15 +34,15 @@ def root():
 
 @app.get("/networks")
 def networks():
-    codes = get_pure_lv_codes()[:20]
-    return [network_metadata(code) for code in codes]
+    return load_networks()
 
 
 @app.get("/networks/{network_id}")
 def network_detail(network_id: str):
-    codes = get_pure_lv_codes()
+    networks = load_networks()
 
-    if network_id not in codes:
-        raise HTTPException(status_code=404, detail="Network not found")
+    for network in networks:
+        if network["id"] == network_id:
+            return network
 
-    return network_metadata(network_id)
+    raise HTTPException(status_code=404, detail="Network not found")
