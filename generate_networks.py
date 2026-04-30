@@ -45,10 +45,28 @@ def main():
                 respect_switches=True,
             )
 
+            fig.update_layout(
+                autosize=True,
+                margin=dict(l=10, r=10, t=10, b=10),
+                height=650,
+                legend=dict(
+                    orientation="v",
+                    x=1.02,
+                    y=1,
+                    xanchor="left",
+                    yanchor="top",
+                ),
+            )
+
             fig.write_html(
                 str(plot_path),
                 include_plotlyjs="cdn",
                 full_html=True,
+                config={
+                    "responsive": True,
+                    "displayModeBar": True,
+                    "scrollZoom": True,
+                },
             )
 
             plot_url = f"/plots/{plot_filename}"
