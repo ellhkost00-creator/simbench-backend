@@ -16,10 +16,9 @@ app.add_middleware(
 
 def get_pure_lv_codes():
     all_codes = sb.collect_all_simbench_codes()
-
     return [
         code for code in all_codes
-        if "-LV-" in code and not any(x in code for x in ["MV", "HV", "EHV"])
+        if "-LV-" in code and "MV" not in code and "HV" not in code and "EHV" not in code
     ]
 
 
@@ -43,14 +42,13 @@ def network_metadata(code: str):
 def root():
     return {
         "message": "SimBench backend is running",
-        "endpoints": ["/networks", "/networks/{id}"]
+        "endpoints": ["/networks", "/networks/{network_id}"]
     }
 
 
 @app.get("/networks")
 def networks():
     codes = get_pure_lv_codes()[:20]
-
     return [network_metadata(code) for code in codes]
 
 
@@ -61,12 +59,16 @@ def network_detail(network_id: str):
     if network_id not in codes:
         raise HTTPException(status_code=404, detail="Network not found")
 
-    net = sb.get_simbench_net(network_id)
+    try:
+        net = sb.get_simbench_net(network_id)
 
-    item = network_metadata(network_id)
-    item["buses"] = len(net.bus)
-    item["lines"] = len(net.line)
-    item["transformers"] = len(net.trafo)
-    item["loads"] = len(net.load)
+        item = network_metadata(network_id)
+        item["buses"] = int(len(net.bus))
+        item["lines"] = int(len(net.line))
+        item["transformers"] = int(len(net.trafo))
+        item["loads"] = int(len(net.load))
 
-    return item
+        return item
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
