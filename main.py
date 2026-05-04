@@ -1,5 +1,6 @@
 import json
 import calendar
+from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
@@ -42,7 +43,6 @@ class RunRequest(BaseModel):
 def load_networks():
     if not DATA_FILE.exists():
         return []
-
     with open(DATA_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -58,13 +58,11 @@ def get_day_of_year(year: int, month: int, day: int):
 def validate_month(year: int, month: int):
     if month < 1 or month > 12:
         raise HTTPException(status_code=400, detail="Invalid month")
-
     return calendar.monthrange(year, month)[1]
 
 
 def validate_day(year: int, month: int, day: int):
     max_day = validate_month(year, month)
-
     if day < 1 or day > max_day:
         raise HTTPException(status_code=400, detail="Invalid day for selected month")
 
@@ -81,62 +79,44 @@ def get_time_steps(
     if horizon == "day":
         if day is None:
             raise HTTPException(status_code=400, detail="Day is required for day horizon")
-
         validate_day(year, month, day)
-
         day_of_year = get_day_of_year(year, month, day)
-
         start = (day_of_year - 1) * steps_per_day
-        end = start + steps_per_day
-
-        return range(start, end)
+        return range(start, start + steps_per_day)
 
     if horizon == "week":
         if day is None:
             raise HTTPException(status_code=400, detail="Start day is required for week horizon")
-
         validate_day(year, month, day)
-
         day_of_year = get_day_of_year(year, month, day)
         days_in_year = 366 if calendar.isleap(year) else 365
-
         start_day = day_of_year
         end_day = min(day_of_year + 6, days_in_year)
-
-        start = (start_day - 1) * steps_per_day
-        end = end_day * steps_per_day
-
-        return range(start, end)
+        return range((start_day - 1) * steps_per_day, end_day * steps_per_day)
 
     if horizon == "month":
         days_before_month = sum(calendar.monthrange(year, m)[1] for m in range(1, month))
         days_in_month = calendar.monthrange(year, month)[1]
-
         start = days_before_month * steps_per_day
-        end = start + days_in_month * steps_per_day
-
-        return range(start, end)
+        return range(start, start + days_in_month * steps_per_day)
 
     raise HTTPException(status_code=400, detail="Invalid horizon")
 
 
-def get_run_id(request: RunRequest):
+def get_run_id(request: RunRequest) -> str:
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     if request.horizon == "day":
-        return f"{request.year}-{request.month:02d}-{request.day:02d}"
-
+        return f"{request.year}-{request.month:02d}-{request.day:02d}_{stamp}"
     if request.horizon == "week":
-        return f"{request.year}-{request.month:02d}-{request.day:02d}_week"
-
+        return f"{request.year}-{request.month:02d}-{request.day:02d}_week_{stamp}"
     if request.horizon == "month":
-        return f"{request.year}-{request.month:02d}"
-
-    return "unknown"
+        return f"{request.year}-{request.month:02d}_{stamp}"
+    return f"unknown_{stamp}"
 
 
 @app.get("/")
 def root():
     networks = load_networks()
-
     return {
         "message": "SimBench backend is running",
         "data_file_exists": DATA_FILE.exists(),
@@ -145,6 +125,7 @@ def root():
         "networks_loaded": len(networks),
         "first_network": networks[0] if networks else None,
         "endpoints": [
+            "/runs",
             "/networks",
             "/networks/{network_id}",
             "/networks/{network_id}/run",
@@ -155,6 +136,36 @@ def root():
     }
 
 
+@app.get("/runs")
+def list_runs():
+    if not RESULTS_DIR.exists():
+        return []
+
+    runs = []
+    for network_dir in sorted(RESULTS_DIR.iterdir()):
+        if not network_dir.is_dir():
+            continue
+        network_id = network_dir.name
+        for run_dir in sorted(network_dir.iterdir()):
+            if not run_dir.is_dir():
+                continue
+            run_id = run_dir.name
+            vm_pu_exists = (run_dir / "res_bus" / "vm_pu.csv").exists()
+            trafo_exists = (run_dir / "res_trafo" / "loading_percent.csv").exists()
+            if not vm_pu_exists:
+                continue
+            runs.append({
+                "network_id": network_id,
+                "run_id": run_id,
+                "results": {
+                    "vm_pu": f"/networks/{network_id}/results/{run_id}/vm-pu",
+                    "line_loading": f"/networks/{network_id}/results/{run_id}/line-loading",
+                    "trafo_loading": f"/networks/{network_id}/results/{run_id}/trafo-loading" if trafo_exists else None,
+                },
+            })
+    return runs
+
+
 @app.get("/networks")
 def networks():
     return load_networks()
@@ -162,12 +173,9 @@ def networks():
 
 @app.get("/networks/{network_id}")
 def network_detail(network_id: str):
-    networks = load_networks()
-
-    for network in networks:
+    for network in load_networks():
         if network["id"] == network_id:
             return network
-
     raise HTTPException(status_code=404, detail="Network not found")
 
 
@@ -198,7 +206,6 @@ def run_simulation(network_id: str, request: RunRequest):
         )
 
         run_id = get_run_id(request)
-
         out_dir = RESULTS_DIR / network_id / run_id
         out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -212,7 +219,6 @@ def run_simulation(network_id: str, request: RunRequest):
         ow.log_variable("res_line", "loading_percent")
 
         has_trafo = len(net.trafo) > 0
-
         if has_trafo:
             ow.log_variable("res_trafo", "loading_percent")
 
@@ -242,29 +248,22 @@ def run_simulation(network_id: str, request: RunRequest):
 @app.get("/networks/{network_id}/results/{run_id}/vm-pu")
 def get_vm_pu(network_id: str, run_id: str):
     file_path = RESULTS_DIR / network_id / run_id / "res_bus" / "vm_pu.csv"
-
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="vm_pu not found")
-
     return FileResponse(file_path)
 
 
 @app.get("/networks/{network_id}/results/{run_id}/line-loading")
 def get_line_loading(network_id: str, run_id: str):
     file_path = RESULTS_DIR / network_id / run_id / "res_line" / "loading_percent.csv"
-
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="line loading not found")
-
     return FileResponse(file_path)
 
 
 @app.get("/networks/{network_id}/results/{run_id}/trafo-loading")
 def get_trafo_loading(network_id: str, run_id: str):
     file_path = RESULTS_DIR / network_id / run_id / "res_trafo" / "loading_percent.csv"
-
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="trafo loading not found")
-
     return FileResponse(file_path)
-    
