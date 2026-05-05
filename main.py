@@ -4,9 +4,16 @@ from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
+import pandas as pd
 import simbench as sb
 import pandapower.timeseries as ts
 
+from contextlib import asynccontextmanager
+
+from db import (
+    db_available, get_db_network, get_db_networks,
+    get_db_runs, init_db, save_run, seed_networks_from_file,
+)
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -14,7 +21,17 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 
-app = FastAPI(title="SimBench Backend")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Attempt PostgreSQL connection on startup; non-fatal if unavailable.
+    init_db()
+    # Seed networks table from JSON file if DB is available and table is empty.
+    if DATA_FILE.exists():
+        seed_networks_from_file(DATA_FILE)
+    yield
+
+
+app = FastAPI(title="SimBench Backend", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,6 +44,11 @@ app.add_middleware(
 DATA_FILE = Path("data/networks.json")
 PLOTS_DIR = Path("data/plots")
 RESULTS_DIR = Path("data/results")
+
+# Violation thresholds — must match the frontend constants in violations-overview.ts.
+V_LOWER = 0.94
+V_UPPER = 1.06
+LOAD_LIMIT = 100.0
 
 if PLOTS_DIR.exists():
     app.mount("/plots", StaticFiles(directory=PLOTS_DIR), name="plots")
@@ -48,7 +70,7 @@ def load_networks():
 
 
 def network_exists(network_id: str) -> bool:
-    return any(network["id"] == network_id for network in load_networks())
+    return get_db_network(network_id) is not None
 
 
 def get_day_of_year(year: int, month: int, day: int):
@@ -138,45 +160,56 @@ def root():
 
 @app.get("/runs")
 def list_runs():
-    if not RESULTS_DIR.exists():
-        return []
-
-    runs = []
-    for network_dir in sorted(RESULTS_DIR.iterdir()):
-        if not network_dir.is_dir():
-            continue
-        network_id = network_dir.name
-        for run_dir in sorted(network_dir.iterdir()):
-            if not run_dir.is_dir():
-                continue
-            run_id = run_dir.name
-            vm_pu_exists = (run_dir / "res_bus" / "vm_pu.csv").exists()
-            trafo_exists = (run_dir / "res_trafo" / "loading_percent.csv").exists()
-            if not vm_pu_exists:
-                continue
-            runs.append({
-                "network_id": network_id,
-                "run_id": run_id,
-                "results": {
-                    "vm_pu": f"/networks/{network_id}/results/{run_id}/vm-pu",
-                    "line_loading": f"/networks/{network_id}/results/{run_id}/line-loading",
-                    "trafo_loading": f"/networks/{network_id}/results/{run_id}/trafo-loading" if trafo_exists else None,
-                },
-            })
-    return runs
+    return get_db_runs() or []
 
 
 @app.get("/networks")
 def networks():
-    return load_networks()
+    return get_db_networks() or []
 
 
 @app.get("/networks/{network_id}")
 def network_detail(network_id: str):
-    for network in load_networks():
-        if network["id"] == network_id:
-            return network
+    db_net = get_db_network(network_id)
+    if db_net is not None:
+        return db_net
     raise HTTPException(status_code=404, detail="Network not found")
+
+
+def compute_violation_counts(out_dir: Path, has_trafo: bool) -> dict:
+    """
+    Scan the simulation CSVs and count per-asset violations using the same
+    thresholds as the frontend.  One violation = one asset (bus / line / trafo)
+    that breaches the limit at any timestep during the run.
+    Returns a dict with under_voltage, over_voltage, line_overload,
+    trafo_overload, and total keys.
+    """
+    counts = dict(under_voltage=0, over_voltage=0,
+                  line_overload=0, trafo_overload=0)
+    try:
+        vm_path = out_dir / "res_bus" / "vm_pu.csv"
+        if vm_path.exists():
+            vm = pd.read_csv(vm_path, sep=";", index_col=0)
+            counts["under_voltage"] = int((vm.min() < V_LOWER).sum())
+            counts["over_voltage"]  = int((vm.max() > V_UPPER).sum())
+
+        line_path = out_dir / "res_line" / "loading_percent.csv"
+        if line_path.exists():
+            line = pd.read_csv(line_path, sep=";", index_col=0)
+            counts["line_overload"] = int((line.max() > LOAD_LIMIT).sum())
+
+        if has_trafo:
+            trafo_path = out_dir / "res_trafo" / "loading_percent.csv"
+            if trafo_path.exists():
+                trafo = pd.read_csv(trafo_path, sep=";", index_col=0)
+                counts["trafo_overload"] = int((trafo.max() > LOAD_LIMIT).sum())
+    except Exception as exc:
+        # Non-fatal: return whatever was counted so far.
+        import logging
+        logging.getLogger(__name__).warning("Violation count failed: %s", exc)
+
+    counts["total"] = sum(counts.values())
+    return counts
 
 
 @app.post("/networks/{network_id}/run")
@@ -222,7 +255,30 @@ def run_simulation(network_id: str, request: RunRequest):
         if has_trafo:
             ow.log_variable("res_trafo", "loading_percent")
 
+        start_time = datetime.now()
         ts.run_timeseries(net, time_steps=time_steps)
+        duration_seconds = (datetime.now() - start_time).total_seconds()
+
+        v = compute_violation_counts(out_dir, has_trafo)
+
+        # [DB-BACKED] Persist run metadata; CSV files are still written to disk above.
+        save_run(
+            run_id=run_id,
+            network_id=network_id,
+            horizon=request.horizon,
+            year=request.year,
+            month=request.month,
+            day=request.day,
+            mode=request.mode,
+            has_trafo=has_trafo,
+            started_at=start_time,
+            duration_seconds=duration_seconds,
+            violations_under_voltage=v["under_voltage"],
+            violations_over_voltage=v["over_voltage"],
+            violations_line_overload=v["line_overload"],
+            violations_trafo_overload=v["trafo_overload"],
+            violations_total=v["total"],
+        )
 
         return {
             "status": "completed",
@@ -233,6 +289,9 @@ def run_simulation(network_id: str, request: RunRequest):
             "day": request.day,
             "mode": request.mode,
             "run_id": run_id,
+            "started_at": start_time.isoformat(),
+            "duration_seconds": duration_seconds,
+            "violations": v,
             "results_available": True,
             "results": {
                 "vm_pu": f"/networks/{network_id}/results/{run_id}/vm-pu",
