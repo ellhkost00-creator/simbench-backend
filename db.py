@@ -279,6 +279,46 @@ def get_db_network(network_id: str) -> dict | None:
         return None
 
 
+def save_network(data: dict) -> bool:
+    """
+    Insert or update a network record. Silently returns False when DB is unavailable.
+    Keys not in _NETWORK_KNOWN_KEYS are stored in the extra JSON column.
+    """
+    if not db_available():
+        return False
+    try:
+        extra = {k: v for k, v in data.items() if k not in _NETWORK_KNOWN_KEYS} or None
+        with _Session() as session:
+            row = session.query(NetworkRecord).filter_by(id=data["id"]).first()
+            if row:
+                for key in _NETWORK_KNOWN_KEYS:
+                    if key in data:
+                        setattr(row, key, data[key])
+                row.extra = extra
+            else:
+                session.add(NetworkRecord(
+                    id=data["id"],
+                    name=data["name"],
+                    voltage=data.get("voltage"),
+                    type=data.get("type"),
+                    status=data.get("status"),
+                    created=data.get("created"),
+                    version=data.get("version"),
+                    buses=data.get("buses"),
+                    lines=data.get("lines"),
+                    transformers=data.get("transformers"),
+                    loads=data.get("loads"),
+                    plot_url=data.get("plot_url"),
+                    extra=extra,
+                ))
+            session.commit()
+        logger.info("Network %s saved to PostgreSQL", data["id"])
+        return True
+    except SQLAlchemyError as exc:
+        logger.warning("Could not save network %s: %s", data["id"], exc)
+        return False
+
+
 def seed_networks_from_file(data_file: Path) -> bool:
     """
     Populate the networks table from the JSON file if the table is currently empty.
